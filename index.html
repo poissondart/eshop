@@ -1,1 +1,82 @@
-<!DOCTYPE html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>VELCON e-shop – sklad</title></head><body style="font:16px system-ui;padding:40px">Prehľad skladu sa pripravuje. Prvá aktualizácia príde čoskoro.</body></html>
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>VELCON e-shop – sklad</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#fff,#0f1a13);--panel:light-dark(#f3f7f3,#16241b);--ink:light-dark(#13261a,#e8f1ea);--mute:light-dark(#5d6f62,#9fb3a5);--line:light-dark(#dfe8e0,#26392c);--g:light-dark(#2e7d32,#6fcf75);--red:light-dark(#c62828,#ff7b72);--amb:light-dark(#a86200,#f2b84b)}
+*{box-sizing:border-box;min-width:0}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif}
+.band{padding:clamp(18px,3vw,36px) max(4vw,16px)}.wrap{max-width:1240px;margin:0 auto}
+h1{font:700 clamp(26px,3.4vw,38px)/1.05 "Inter Tight",sans-serif;margin:0}h1 span{color:var(--g)}
+h2{font:700 22px/1.2 "Inter Tight",sans-serif;margin:0 0 4px}
+.sub{color:var(--mute);font-size:14px}
+.warn{margin-top:12px;padding:10px 14px;border-radius:10px;background:light-dark(#fff4e5,#2b2210);color:var(--amb);font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
+.card{background:var(--panel);border-radius:12px;padding:14px;border:2px solid transparent;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.card b{display:block;font:300 40px/1 "Inter Tight"}.card.r b{color:var(--red)}.card.a b{color:var(--amb)}
+.card small{color:var(--mute);font-size:13px}.card.sel{border-color:var(--ink)}
+.card:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:10px}
+th{text-align:left;font:600 13px Inter;color:var(--mute);border-bottom:1px solid var(--line);padding:8px}
+td{border-bottom:1px solid var(--line);padding:9px 8px;vertical-align:top}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.code{white-space:nowrap;color:var(--mute);font-size:14px}.neg{color:var(--red);font-weight:700}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 7px;border-radius:99px;background:light-dark(#fde8e8,#3a1715);color:var(--red);margin-left:6px}
+.empty{color:var(--mute);padding:16px 8px}
+input{font:16px Inter;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:min(360px,100%);margin-top:14px}
+footer{color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
+@media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;color:var(--mute)}}
+</style>
+</head>
+<body>
+<header class="band"><div class="wrap">
+  <h1>VELCON e-shop · <span>sklad</span></h1>
+  <div class="sub" id="when"></div>
+  <div class="warn" id="stale" hidden></div>
+  <div class="cards" id="cards"></div>
+  <input id="q" type="search" placeholder="Hľadať kód alebo produkt" aria-label="Hľadať kód alebo produkt">
+  <table class="stack" id="tbl"></table>
+</div></header>
+<section class="band" style="padding-top:0"><div class="wrap">
+  <h2>Najrýchlejšie ubúda</h2>
+  <div class="sub">Úbytok za posledných 7 dní. „Vydrží“ = stav ÷ priemerný denný úbytok.</div>
+  <table class="stack" id="fade"></table>
+</div></section>
+<footer class="band"><div class="wrap">Vynechané sú postele, sety s posteľou alebo matracom, produkty na dopyt (0,01 €) a skryté produkty. Vypredaných produktov bez nastaveného minima: <span id="rest"></span>. Stránka sa aktualizuje každé ráno o 7:00.</div></footer>
+<script id="data" type="application/json">{"at": 1795691402002, "catalog": true, "claim": [], "fade": [{"a": 0, "c": "0811376", "d": 0, "m": null, "n": "Držiak na poháre pre invalidný vozík", "o": 6}, {"a": 0, "c": "0809243", "d": 0, "m": null, "n": "Stolík k polohovateľným posteliam - béžový (nastaviteľný)", "o": 3}, {"a": 0, "c": "0803390", "d": 0, "m": null, "n": "Toaletná a sprchovacia stolička s WC - Mobiak", "o": 3}, {"a": 0, "c": "0811980", "d": 0, "m": null, "n": "Polohovateľný invalídny vozík PROTEUS I", "o": 3}, {"a": 0, "c": "0805622", "d": 0, "m": null, "n": "Oddychové polohovacie kreslo „HARMONY“", "o": 2}, {"a": 0, "c": "0812207", "d": 0, "m": null, "n": "Noha s kolieskom pre bariatrické chodítko", "o": 2}, {"a": 0, "c": "0805976", "d": 0, "m": null, "n": "Evakuačný stoličkový schodolez - mechanický", "o": 2}, {"a": 0, "c": "0809176", "d": 0, "m": null, "n": "Toaletná kovová stolička s WC", "o": 1}, {"a": 0, "c": "0810842", "d": 0, "m": 2, "n": "Odľahčený skladací invalidný vozík LEVO", "o": 1}, {"a": 0, "c": "0803441", "d": 0, "m": null, "n": "Automatický tlakomer YUWELL", "o": 1}, {"a": 0, "c": "81951010", "d": 0, "m": 2, "n": "Sprchová stolička Smart do 200 kg", "o": 1}, {"a": 0, "c": "0810007", "d": 0, "m": 1, "n": "Pojazdné chodítko s nastaviteľným rámom", "o": 1}, {"a": 1, "c": "0805520", "d": 1.8, "m": null, "n": "Nástenné plastové madlá", "o": 4}, {"a": 1, "c": "0803156", "d": 2.3, "m": 1, "n": "Statický digitálny rotoped - skladací", "o": 3}, {"a": 1, "c": "0810616", "d": 2.3, "m": 5, "n": "Skladacie chodítko pre seniorov - Rollator (odľahčené)", "o": 3}], "min": [{"a": 1, "c": "0810010", "f": 0, "m": 1, "n": "Antidekubitná podložka na sedenie s gélom a vzduchom", "r": 0}, {"a": 1, "c": "0808819", "f": 0, "m": 1, "n": "Detské chodítko na kolieskach", "r": 0}, {"a": 1, "c": "0811982", "f": 0, "m": 1, "n": "Hliníkový invalidný vozík pre detskú mozgovú obrnu AZURA", "r": 0}, {"a": 1, "c": "0815001", "f": 0, "m": 1, "n": "Invalidný vozík AEGUS 24", "r": 0}, {"a": 1, "c": "0815708", "f": 0, "m": 3, "n": "Polohovacie kreslo s vibračnou masážou a vyhrievaním", "r": 0}, {"a": 1, "c": "0810616", "f": 0, "m": 5, "n": "Skladacie chodítko pre seniorov - Rollator (odľahčené)", "r": 0}, {"a": 1, "c": "0803611", "f": 0, "m": 1, "n": "Skladacie pojazdné chodítko „Action White“", "r": 0}, {"a": 1, "c": "0803156", "f": 0, "m": 1, "n": "Statický digitálny rotoped - skladací", "r": 0}, {"a": 2, "c": "80209228", "f": 0, "m": 2, "n": "Komfortný kryt", "r": 0}, {"a": 2, "c": "0806218", "f": 0, "m": 2, "n": "Lymfodrenážna podložka na chrbát", "r": 0}, {"a": 2, "c": "0806219", "f": 0, "m": 2, "n": "Lymfodrenážna podložka na chrbát", "r": 0}, {"a": 2, "c": "80210046", "f": 0, "m": 4, "n": "Madlo Handy 40 cm lomené", "r": 0}, {"a": 2, "c": "0810840", "f": 0, "m": 2, "n": "Odľahčený skladací invalidný vozík LEVO", "r": 0}, {"a": 2, "c": "0810843", "f": 0, "m": 2, "n": "Odľahčený skladací invalidný vozík LEVO", "r": 0}, {"a": 3, "c": "0803122", "f": 0, "m": 5, "n": "Toaletný vak s bedrovým pásom", "r": 0}, {"a": 3, "c": "0803121", "f": 0, "m": 10, "n": "Univerzálny prepravný vak", "r": 0}, {"a": 4, "c": "0811609", "f": 0, "m": 4, "n": "Invalidný vozík Gemini Blue", "r": 0}, {"a": 4, "c": "80210044", "f": 0, "m": 4, "n": "Madlo Handy 60 cm", "r": 0}, {"a": 4, "c": "80209227", "f": 0, "m": 4, "n": "Mäkké pohodlné sedadlo", "r": 0}], "neg": [{"a": -4, "c": "SDKA-20", "f": 0, "m": null, "n": "Komplet glukomer SD CodeFree + 50ks prúžkov", "r": 0}, {"a": -3, "c": "O-521", "f": 0, "m": null, "n": "Teplomer OMRON Gentle Temp 521", "r": 0}, {"a": -2, "c": "CELO-219A", "f": 0, "m": null, "n": "Inhalátor OMRON CompAir Pro (C900) + Vincentka", "r": 0}, {"a": -2, "c": "SOLAR 185", "f": 0, "m": null, "n": "Mobilný zdvihák Solar 185 - vysoký zdvih 1980 mm", "r": 0}, {"a": -2, "c": "CELC-513", "f": 0, "m": null, "n": "Sklenený teplomer Celimed Classic TC-01", "r": 0}, {"a": -2, "c": "81701410", "f": 0, "m": null, "n": "Sprchová stolička Swift", "r": 0}, {"a": -2, "c": "O-117A", "f": 0, "m": null, "n": "Tlakomer OMRON M2+ Connect + adaptér", "r": 0}, {"a": -2, "c": "25105 - L", "f": 0, "m": null, "n": "Vak na nácvik chôdze Human Care", "r": 0}, {"a": -1, "c": "JC224", "f": 0, "m": null, "n": "Alkohol tester JoyCare", "r": 0}, {"a": -1, "c": "MCPREMIUMH", "f": 0, "m": null, "n": "Antidekubitný matrac CARE PREMIUM", "r": 0}, {"a": -1, "c": "2382/17K", "f": 0, "m": null, "n": "Elektrický vozík Alber ERIVO", "r": 0}, {"a": -1, "c": "R11", "f": 0, "m": null, "n": "G-aparát – Skladacie pojazdné chodítko s podpazušnými podperami", "r": 0}, {"a": -1, "c": "SD-100", "f": 0, "m": null, "n": "Glukomer SD CodeFree", "r": 0}, {"a": -1, "c": "N20R20 - S430", "f": 0, "m": null, "n": "Invalidný vozík N20R20 \"Prejde cez 60 cm široké dvere\"", "r": 0}, {"a": -1, "c": "SET-LLL.", "f": 0, "m": null, "n": "Kompletný lymfodrenážny set pre celotelovú terapiu", "r": 0}, {"a": -1, "c": "LG2021", "f": 0, "m": null, "n": "Pásový schodolez LG2004 – Nosnosť do 150kg | Výstavný kus", "r": 0}, {"a": -1, "c": "81701710", "f": 0, "m": null, "n": "Sprchová stolička Swift", "r": 0}, {"a": -1, "c": "25105 - M", "f": 0, "m": null, "n": "Vak na nácvik chôdze Human Care", "r": 0}, {"a": -1, "c": "N3100", "f": 0, "m": null, "n": "Vertikalizátor EASY UP", "r": 0}, {"a": -1, "c": "009-09596", "f": 0, "m": null, "n": "Závesný pás pre podporu vstávania", "r": 0}], "out": [{"a": 0, "c": "0810842", "f": 1, "m": 2, "n": "Odľahčený skladací invalidný vozík LEVO", "r": 0}, {"a": 0, "c": "0810007", "f": 1, "m": 1, "n": "Pojazdné chodítko s nastaviteľným rámom", "r": 0}, {"a": 0, "c": "81951010", "f": 1, "m": 2, "n": "Sprchová stolička Smart do 200 kg", "r": 0}, {"a": 0, "c": "81702060", "f": 0, "m": 2, "n": "Toaletná stolička s prenosným WC Swift Commode - základná", "r": 0}, {"a": 0, "c": "80229270", "f": 0, "m": 5, "n": "Toaletný a sprchovací vozík Clean - 5 rokov záruka", "r": 0}], "rest": 123, "atText": "26. 11. 2026 o 12:10", "genText": "26. 11. 2026 o 12:12", "stale": false}</script>
+<script>
+{
+const D=JSON.parse(document.getElementById("data").textContent);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=new Intl.NumberFormat("sk-SK",{maximumFractionDigits:1}),n=v=>v==null?"–":nf.format(v);
+$("when").textContent=`Stav skladu k ${D.atText} · vygenerované ${D.genText}`;
+if(D.stale){$("stale").hidden=false;$("stale").textContent=`Pozor: údaje sú staršie ako 12 hodín (posledná kontrola ${D.atText}).`}
+$("rest").textContent=D.rest;
+const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["claim","Rezervácie nad stav","a"]];
+let tab=location.hash.slice(1);if(!T.some(t=>t[0]===tab))tab="neg";
+function cards(){$("cards").innerHTML=T.map(([k,l,c])=>`<button class="card ${c} ${k===tab?"sel":""}" data-k="${k}"><b>${D[k].length}</b><small>${esc(l)}</small></button>`).join("")}
+function table(){
+  const q=$("q").value.trim().toLowerCase(),list=D[tab].filter(r=>!q||(r.c+" "+r.n).toLowerCase().includes(q));
+  if(!list.length){$("tbl").innerHTML=`<tbody><tr><td class="empty">Nič tu nie je.</td></tr></tbody>`;return}
+  $("tbl").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Stav</th><th class="num">Minimum</th><th class="num">Rezervované</th></tr></thead><tbody>`+
+   list.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}${r.f?'<span class="tag">nové za 7 dní</span>':""}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}</td><td class="num">${n(r.m)}</td><td class="num">${r.r?n(r.r):"–"}</td></tr>`).join("")+`</tbody>`;
+}
+function fade(){
+  if(!D.fade.length){$("fade").innerHTML=`<tbody><tr><td class="empty">Za posledných 7 dní žiadny úbytok.</td></tr></tbody>`;return}
+  $("fade").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Odišlo za 7 dní</th><th class="num">Stav</th><th class="num">Minimum</th><th class="num">Vydrží</th></tr></thead><tbody>`+
+   D.fade.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}</td><td class="num">${n(r.o)}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}</td><td class="num">${n(r.m)}</td><td class="num ${r.d<7?"neg":""}">${r.a<=0?"vypredané":"~"+n(Math.round(r.d))+" dní"}</td></tr>`).join("")+`</tbody>`;
+}
+$("cards").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b){tab=b.dataset.k;history.replaceState(null,"","#"+tab);cards();table()}});
+$("q").addEventListener("input",table);
+new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document.body,{childList:true,subtree:true});
+cards();table();fade();
+}
+</script>
+</body>
+</html>
