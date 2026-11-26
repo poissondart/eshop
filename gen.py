@@ -5,9 +5,13 @@ stock.json = dokument export/stock z artifactu Eshop Watcher:
 {at, neg[], out[], min[], claim[], rest, fade[], catalog}
 riadky: {c: kód, n: názov, a: stav, m: minimum, r: rezervované, f: nové za 7 dní}
 fade:   {c, n, o: odišlo za 7 dní, a, m, d: dní do vypredania}
-Použitie: python3 gen.py stock.json index.html
+Použitie: SKLAD_HESLO=... python3 gen.py stock.json index.html
+Dáta sú v stránke zašifrované (AES-GCM, kľúč z hesla cez PBKDF2); bez hesla nie sú čitateľné.
 """
-import json, sys, datetime, zoneinfo, base64
+import json, sys, os, datetime, zoneinfo, base64
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
 
 src, out = sys.argv[1], sys.argv[2]
 data = json.load(open(src, encoding="utf-8"))
@@ -18,11 +22,16 @@ age_h = (now - at).total_seconds() / 3600
 data["atText"] = f"{at.day}. {at.month}. {at.year} o {at:%H:%M}"
 data["genText"] = f"{now.day}. {now.month}. {now.year} o {now:%H:%M}"
 data["stale"] = age_h > 12
-# dáta sú v HTML zakódované (base64), aby kódy a názvy produktov neboli v zdrojáku ako čitateľný text
 if isinstance(data.get("rest"), int):
     data["restPending"] = data["rest"]
     data["rest"] = []
-blob = base64.b64encode(json.dumps(data, ensure_ascii=False).encode("utf-8")).decode("ascii")
+pw = os.environ.get("SKLAD_HESLO", "")
+if not pw:
+    sys.exit("Chýba heslo v premennej SKLAD_HESLO")
+salt, iv = os.urandom(16), os.urandom(12)
+key = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=310000).derive(pw.encode("utf-8"))
+ct = AESGCM(key).encrypt(iv, json.dumps(data, ensure_ascii=False).encode("utf-8"), None)
+blob = base64.b64encode(salt + iv + ct).decode("ascii")
 
 html = """<!DOCTYPE html>
 <html lang="sk">
@@ -62,6 +71,14 @@ footer{color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
+<div class="band" id="lock"><div class="wrap" style="max-width:420px">
+  <h1>E-shop · <span>sklad</span></h1>
+  <form id="pwf" style="margin-top:18px"><label for="pw" class="sub">Heslo</label><br>
+  <input id="pw" type="password" autocomplete="current-password" required style="margin-top:6px">
+  <button type="submit" style="font:600 15px Inter;min-height:44px;padding:0 18px;border-radius:10px;border:0;background:var(--g);color:light-dark(#fff,#0f1a13);margin-top:10px;cursor:pointer">Otvoriť</button>
+  <div class="sub" id="pwmsg" style="margin-top:8px"></div></form>
+</div></div>
+<div id="app" hidden>
 <header class="band"><div class="wrap">
   <h1>E-shop · <span>sklad</span></h1>
   <div class="sub" id="when"></div>
@@ -75,12 +92,28 @@ footer{color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
   <div class="sub">Úbytok za posledných 7 dní. „Vydrží“ = stav ÷ priemerný denný úbytok.</div>
   <table class="stack" id="fade"></table>
 </div></section>
-<footer class="band"><div class="wrap">Vynechané sú postele, sety s posteľou alebo matracom, produkty na dopyt (0,01 €) a skryté produkty. Stránka sa aktualizuje každé ráno o 7:00.</div></footer>
+<footer class="band"><div class="wrap">Vynechané sú postele, sety s posteľou alebo matracom, produkty na dopyt (0,01 €) a skryté produkty. Stránka sa aktualizuje každé ráno o 7:00. <a href="#" id="logout" style="color:inherit">Odhlásiť</a></div></footer>
+</div>
 <script id="data" type="text/plain">__DATA__</script>
 <script>
 {
-const D=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(document.getElementById("data").textContent.trim()),c=>c.charCodeAt(0))));
 const $=id=>document.getElementById(id);
+const RAW=Uint8Array.from(atob($("data").textContent.trim()),c=>c.charCodeAt(0));
+async function decrypt(pw){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:RAW.slice(0,16),iterations:310000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:RAW.slice(16,28)},key,RAW.slice(28));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const store={get(){try{return localStorage.getItem("sklad-pw")}catch{return null}},set(v){try{v?localStorage.setItem("sklad-pw",v):localStorage.removeItem("sklad-pw")}catch{}}};
+async function unlock(pw,remember){
+  try{const D=await decrypt(pw);if(remember)store.set(pw);$("lock").hidden=true;$("app").hidden=false;start(D)}
+  catch{store.set(null);$("pwmsg").textContent="Nesprávne heslo."}
+}
+$("pwf").addEventListener("submit",e=>{e.preventDefault();$("pwmsg").textContent="Overujem…";unlock($("pw").value,true)});
+$("logout").addEventListener("click",e=>{e.preventDefault();store.set(null);location.reload()});
+{const s=store.get();if(s)unlock(s,false)}
+function start(D){
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const nf=new Intl.NumberFormat("sk-SK",{maximumFractionDigits:1}),n=v=>v==null?"–":nf.format(v);
 $("when").textContent=`Stav skladu k ${D.atText} · vygenerované ${D.genText}`;
@@ -103,6 +136,7 @@ $("cards").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(
 $("q").addEventListener("input",table);
 new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document.body,{childList:true,subtree:true});
 cards();table();fade();
+}
 }
 </script>
 </body>
