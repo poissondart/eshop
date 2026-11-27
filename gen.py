@@ -56,7 +56,7 @@ h1{font:700 clamp(26px,3.4vw,38px)/1.05 "Inter Tight",sans-serif;margin:0}h1 spa
 h2{font:700 22px/1.2 "Inter Tight",sans-serif;margin:0 0 4px}
 .sub{color:var(--mute);font-size:14px}
 .warn{margin-top:12px;padding:10px 14px;border-radius:10px;background:light-dark(#fff4e5,#2b2210);color:var(--amb);font-size:14px}
-.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:20px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
 .card{background:var(--panel);border-radius:12px;padding:14px;border:2px solid transparent;cursor:pointer;text-align:left;font:inherit;color:inherit}
 .card b{display:block;font:300 40px/1 "Inter Tight"}.card.r b{color:var(--red)}.card.a b{color:var(--amb)}
 .card small{color:var(--mute);font-size:13px}.card.sel{border-color:var(--ink)}
@@ -157,7 +157,7 @@ const nf=new Intl.NumberFormat("sk-SK",{maximumFractionDigits:1}),n=v=>v==null?"
 const dd=d=>!d?"":`<span class="dd ${d>0?"pl":"mi"}" title="zmena od včera">${d>0?"▲ +":"▼ −"}${n(Math.abs(d))}</span>`;
 $("when").textContent=`Stav skladu k ${D.atText} · vygenerované ${D.genText}`;
 if(D.stale){$("stale").hidden=false;$("stale").textContent=`Pozor: údaje sú staršie ako 12 hodín (posledná kontrola ${D.atText}).`}
-const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["claim","Rezervácie nad stav","a"],["rest","Vypredané bez minima",""]];
+const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["rest","Vypredané bez minima",""]];
 let tab=location.hash.slice(1);if(!T.some(t=>t[0]===tab))tab="neg";
 function cards(){$("cards").innerHTML=T.map(([k,l,c])=>`<button class="card ${c} ${k===tab?"sel":""}" data-k="${k}"><b>${k==="rest"&&D.restPending?D.restPending:D[k].length}</b><small>${esc(l)}</small></button>`).join("")}
 function chgTable(){
@@ -169,8 +169,8 @@ function chgTable(){
 function table(){
   const q=$("q").value.trim().toLowerCase(),list=D[tab].filter(r=>!q||(r.c+" "+r.n).toLowerCase().includes(q));
   if(!list.length){$("tbl").innerHTML=`<tbody><tr><td class="empty">${tab==="rest"&&D.restPending?`Zoznam (${D.restPending} položiek) pribudne pri ďalšej aktualizácii.`:"Nič tu nie je."}</td></tr></tbody>`;return}
-  $("tbl").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Stav</th><th class="num">Minimum</th><th class="num">Rezervované</th></tr></thead><tbody>`+
-   list.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}${r.f?'<span class="tag">nové za 7 dní</span>':""}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}${dd(r.d)}</td><td class="num">${n(r.m)}</td><td class="num">${r.r?n(r.r):"–"}</td></tr>`).join("")+`</tbody>`;
+  $("tbl").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Stav</th><th class="num">Minimum</th></tr></thead><tbody>`+
+   list.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}${r.f?'<span class="tag">nové za 7 dní</span>':""}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}${dd(r.d)}</td><td class="num">${n(r.m)}</td></tr>`).join("")+`</tbody>`;
 }
 function fade(){
   if(!D.fade.length){$("fade").innerHTML=`<tbody><tr><td class="empty">Za posledných 7 dní žiadny úbytok.</td></tr></tbody>`;return}
