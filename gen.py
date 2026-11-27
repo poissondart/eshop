@@ -116,6 +116,11 @@ footer{color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
   </div>
 </div></section>
 <section class="band" style="padding-top:0"><div class="wrap">
+  <div id="setsSec" hidden style="margin-bottom:28px">
+  <h2>Posteľové sety – dostupnosť</h2>
+  <div class="sub">Počítané zo súčastí na sklade (posteľ, matrac Care Classic 30, poťah MICRO 200×90×12, stolík béžový alebo hnedý). Súčasti sú spoločné pre viac setov – číslo je maximum pre každý set zvlášť, nie súčet.</div>
+  <table class="stack" id="setTbl"></table>
+  </div>
   <h2>Zmena za 24 hodín</h2>
   <div class="sub">Produkty, ktorých stav sa zmenil za posledných 24 hodín pred snímkou (▲ príjem, ▼ úbytok).</div>
   <table class="stack" id="chgTbl"></table>
@@ -160,6 +165,11 @@ if(D.stale){$("stale").hidden=false;$("stale").textContent=`Pozor: údaje sú st
 const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["rest","Vypredané bez minima",""]];
 let tab=location.hash.slice(1);if(!T.some(t=>t[0]===tab))tab="neg";
 function cards(){$("cards").innerHTML=T.map(([k,l,c])=>`<button class="card ${c} ${k===tab?"sel":""}" data-k="${k}"><b>${k==="rest"&&D.restPending?D.restPending:D[k].length}</b><small>${esc(l)}</small></button>`).join("")}
+function setTable(){
+  const S=D.sets||[];if(!S.length)return;$("setsSec").hidden=false;
+  $("setTbl").innerHTML=`<thead><tr><th>Set</th><th class="num">Dostupné</th><th>Obmedzuje</th><th>Súčasti na sklade</th></tr></thead><tbody>`+
+   S.map(s=>`<tr><td>${esc(s.n)}<br><span class="code">${esc(s.c)}</span></td><td class="num ${s.a<=0?"neg":""}" style="font-weight:700;font-size:17px">${n(s.a)}</td><td>${esc(s.lim)}</td><td class="sub">${esc(s.parts)}</td></tr>`).join("")+`</tbody>`;
+}
 function chgTable(){
   const L=D.chg||[];
   if(!L.length){$("chgTbl").innerHTML=`<tbody><tr><td class="empty">Za posledných 24 hodín sa stav skladu nezmenil.</td></tr></tbody>`;return}
@@ -180,7 +190,7 @@ function fade(){
 $("cards").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b){tab=b.dataset.k;history.replaceState(null,"","#"+tab);cards();table()}});
 $("q").addEventListener("input",table);
 new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document.body,{childList:true,subtree:true});
-chgTable();cards();table();fade();
+setTable();chgTable();cards();table();fade();
 if(D.sales)sales(D.sales);
 }
 function sales(S){
