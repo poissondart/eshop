@@ -22,6 +22,7 @@ age_h = (now - at).total_seconds() / 3600
 data["atText"] = f"{at.day}. {at.month}. {at.year} o {at:%H:%M}"
 data["genText"] = f"{now.day}. {now.month}. {now.year} o {now:%H:%M}"
 data["stale"] = age_h > 12
+data.setdefault("chg", [])
 if isinstance(data.get("rest"), int):
     data["restPending"] = data["rest"]
     data["rest"] = []
@@ -52,7 +53,7 @@ h1{font:700 clamp(26px,3.4vw,38px)/1.05 "Inter Tight",sans-serif;margin:0}h1 spa
 h2{font:700 22px/1.2 "Inter Tight",sans-serif;margin:0 0 4px}
 .sub{color:var(--mute);font-size:14px}
 .warn{margin-top:12px;padding:10px 14px;border-radius:10px;background:light-dark(#fff4e5,#2b2210);color:var(--amb);font-size:14px}
-.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:20px}
+.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:20px}
 .card{background:var(--panel);border-radius:12px;padding:14px;border:2px solid transparent;cursor:pointer;text-align:left;font:inherit;color:inherit}
 .card b{display:block;font:300 40px/1 "Inter Tight"}.card.r b{color:var(--red)}.card.a b{color:var(--amb)}
 .card small{color:var(--mute);font-size:13px}.card.sel{border-color:var(--ink)}
@@ -62,6 +63,7 @@ th{text-align:left;font:600 13px Inter;color:var(--mute);border-bottom:1px solid
 td{border-bottom:1px solid var(--line);padding:9px 8px;vertical-align:top}
 td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 td.code{white-space:nowrap;color:var(--mute);font-size:14px}.neg{color:var(--red);font-weight:700}
+.dd{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;padding:0 6px;border-radius:99px}.dd.pl{color:var(--g);background:light-dark(#e6f3e7,#1d3322)}.dd.mi{color:var(--red);background:light-dark(#fde8e8,#3a1715)}
 .tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 7px;border-radius:99px;background:light-dark(#fde8e8,#3a1715);color:var(--red);margin-left:6px}
 .empty{color:var(--mute);padding:16px 8px}
 input{font:16px Inter;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:min(360px,100%);margin-top:14px}
@@ -116,21 +118,22 @@ $("logout").addEventListener("click",e=>{e.preventDefault();store.set(null);loca
 function start(D){
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const nf=new Intl.NumberFormat("sk-SK",{maximumFractionDigits:1}),n=v=>v==null?"–":nf.format(v);
+const dd=d=>!d?"":`<span class="dd ${d>0?"pl":"mi"}" title="zmena od včera">${d>0?"▲ +":"▼ −"}${n(Math.abs(d))}</span>`;
 $("when").textContent=`Stav skladu k ${D.atText} · vygenerované ${D.genText}`;
 if(D.stale){$("stale").hidden=false;$("stale").textContent=`Pozor: údaje sú staršie ako 12 hodín (posledná kontrola ${D.atText}).`}
-const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["claim","Rezervácie nad stav","a"],["rest","Vypredané bez minima",""]];
+const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["claim","Rezervácie nad stav","a"],["chg","Zmena od včera",""],["rest","Vypredané bez minima",""]];
 let tab=location.hash.slice(1);if(!T.some(t=>t[0]===tab))tab="neg";
 function cards(){$("cards").innerHTML=T.map(([k,l,c])=>`<button class="card ${c} ${k===tab?"sel":""}" data-k="${k}"><b>${k==="rest"&&D.restPending?D.restPending:D[k].length}</b><small>${esc(l)}</small></button>`).join("")}
 function table(){
   const q=$("q").value.trim().toLowerCase(),list=D[tab].filter(r=>!q||(r.c+" "+r.n).toLowerCase().includes(q));
   if(!list.length){$("tbl").innerHTML=`<tbody><tr><td class="empty">${tab==="rest"&&D.restPending?`Zoznam (${D.restPending} položiek) pribudne pri ďalšej aktualizácii.`:"Nič tu nie je."}</td></tr></tbody>`;return}
   $("tbl").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Stav</th><th class="num">Minimum</th><th class="num">Rezervované</th></tr></thead><tbody>`+
-   list.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}${r.f?'<span class="tag">nové za 7 dní</span>':""}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}</td><td class="num">${n(r.m)}</td><td class="num">${r.r?n(r.r):"–"}</td></tr>`).join("")+`</tbody>`;
+   list.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}${r.f?'<span class="tag">nové za 7 dní</span>':""}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}${dd(r.d)}</td><td class="num">${n(r.m)}</td><td class="num">${r.r?n(r.r):"–"}</td></tr>`).join("")+`</tbody>`;
 }
 function fade(){
   if(!D.fade.length){$("fade").innerHTML=`<tbody><tr><td class="empty">Za posledných 7 dní žiadny úbytok.</td></tr></tbody>`;return}
   $("fade").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Odišlo za 7 dní</th><th class="num">Stav</th><th class="num">Minimum</th><th class="num">Vydrží</th></tr></thead><tbody>`+
-   D.fade.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}</td><td class="num">${n(r.o)}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}</td><td class="num">${n(r.m)}</td><td class="num ${r.d<7?"neg":""}">${r.a<=0?"vypredané":"~"+n(Math.round(r.d))+" dní"}</td></tr>`).join("")+`</tbody>`;
+   D.fade.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}</td><td class="num">${n(r.o)}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}${dd(r.dd)}</td><td class="num">${n(r.m)}</td><td class="num ${r.d<7?"neg":""}">${r.a<=0?"vypredané":"~"+n(Math.round(r.d))+" dní"}</td></tr>`).join("")+`</tbody>`;
 }
 $("cards").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b){tab=b.dataset.k;history.replaceState(null,"","#"+tab);cards();table()}});
 $("q").addEventListener("input",table);
@@ -143,4 +146,4 @@ cards();table();fade();
 </html>
 """
 open(out, "w", encoding="utf-8").write(html.replace("__DATA__", blob))
-print(f"OK {out}: neg={len(data['neg'])} out={len(data['out'])} min={len(data['min'])} claim={len(data['claim'])} rest={len(data['rest'])} fade={len(data['fade'])} at={data['atText']} stale={data['stale']}")
+print(f"OK {out}: neg={len(data['neg'])} out={len(data['out'])} min={len(data['min'])} claim={len(data['claim'])} chg={len(data['chg'])} rest={len(data['rest'])} fade={len(data['fade'])} at={data['atText']} stale={data['stale']}")
