@@ -116,8 +116,8 @@ footer{color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
   </div>
 </div></section>
 <section class="band" style="padding-top:0"><div class="wrap">
-  <h2>Zmena od včera</h2>
-  <div class="sub">Produkty, ktorých stav sa zmenil od polnoci (▲ príjem, ▼ úbytok).</div>
+  <h2>Zmena za 24 hodín</h2>
+  <div class="sub">Produkty, ktorých stav sa zmenil za posledných 24 hodín pred snímkou (▲ príjem, ▼ úbytok).</div>
   <table class="stack" id="chgTbl"></table>
   <h2 style="margin-top:28px">Sklad</h2>
   <div class="warn" id="stale" hidden></div>
@@ -154,7 +154,7 @@ $("logout").addEventListener("click",e=>{e.preventDefault();store.set(null);loca
 function start(D){
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const nf=new Intl.NumberFormat("sk-SK",{maximumFractionDigits:1}),n=v=>v==null?"–":nf.format(v);
-const dd=d=>!d?"":`<span class="dd ${d>0?"pl":"mi"}" title="zmena od včera">${d>0?"▲ +":"▼ −"}${n(Math.abs(d))}</span>`;
+const dd=d=>!d?"":`<span class="dd ${d>0?"pl":"mi"}" title="zmena za 24 hodín">${d>0?"▲ +":"▼ −"}${n(Math.abs(d))}</span>`;
 $("when").textContent=`Stav skladu k ${D.atText} · vygenerované ${D.genText}`;
 if(D.stale){$("stale").hidden=false;$("stale").textContent=`Pozor: údaje sú staršie ako 12 hodín (posledná kontrola ${D.atText}).`}
 const T=[["neg","Záporný stav","r"],["out","Vypredané (s minimom)","r"],["min","Na/pod minimom","a"],["rest","Vypredané bez minima",""]];
@@ -162,7 +162,7 @@ let tab=location.hash.slice(1);if(!T.some(t=>t[0]===tab))tab="neg";
 function cards(){$("cards").innerHTML=T.map(([k,l,c])=>`<button class="card ${c} ${k===tab?"sel":""}" data-k="${k}"><b>${k==="rest"&&D.restPending?D.restPending:D[k].length}</b><small>${esc(l)}</small></button>`).join("")}
 function chgTable(){
   const L=D.chg||[];
-  if(!L.length){$("chgTbl").innerHTML=`<tbody><tr><td class="empty">Od polnoci sa stav skladu nezmenil.</td></tr></tbody>`;return}
+  if(!L.length){$("chgTbl").innerHTML=`<tbody><tr><td class="empty">Za posledných 24 hodín sa stav skladu nezmenil.</td></tr></tbody>`;return}
   $("chgTbl").innerHTML=`<thead><tr><th>Kód</th><th>Produkt</th><th class="num">Zmena</th><th class="num">Stav</th><th class="num">Minimum</th></tr></thead><tbody>`+
    L.map(r=>`<tr><td class="code">${esc(r.c)}</td><td>${esc(r.n)}</td><td class="num">${dd(r.d)}</td><td class="num ${r.a<0?"neg":""}">${n(r.a)}</td><td class="num">${n(r.m)}</td></tr>`).join("")+`</tbody>`;
 }
